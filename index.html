@@ -1439,6 +1439,10 @@
                     form.addEventListener('submit', async function(e) {
                         e.preventDefault();
                         
+                        // Get button reference and store original content first
+                        const button = form.querySelector('button[type="submit"]');
+                        const originalButtonContent = button.innerHTML;
+                        
                         try {
                             // Get form data
                             const formData = new FormData(form);
@@ -1460,8 +1464,6 @@
                             }
                             
                             // Show loading state
-                            const button = form.querySelector('button[type="submit"]');
-                            const originalButtonContent = button.innerHTML;
                             button.disabled = true;
                             button.innerHTML = '<span>Joining Waitlist...</span>';
                             
@@ -1505,11 +1507,8 @@
                             showFormMessage(form, 'An error occurred. Please try again later.', 'error');
                             
                             // Re-enable button
-                            const button = form.querySelector('button[type="submit"]');
-                            if (button) {
-                                button.disabled = false;
-                                button.innerHTML = originalButtonContent;
-                            }
+                            button.disabled = false;
+                            button.innerHTML = originalButtonContent;
                         }
                     });
                 });

@@ -1,5 +1,5 @@
 /**
- * BlockWill Waitlist Form Handler
+ * BlockWill Waitlist Form Handler - WORKING VERSION
  * Google Apps Script to store form submissions in Google Sheets
  */
 
@@ -12,7 +12,6 @@ const NOTIFICATION_EMAIL = 'your-email@example.com'; // Change this to your emai
  */
 function doPost(e) {
   try {
-    // Log the incoming request for debugging
     console.log('Received POST request:', JSON.stringify(e));
     
     // Parse the form data
@@ -36,7 +35,7 @@ function doPost(e) {
     // Get or create the spreadsheet
     const sheet = getOrCreateSheet();
     
-    // Check for duplicate email (optional)
+    // Check for duplicate email
     if (isDuplicateEmail(sheet, data.email)) {
       return createResponse(409, 'Email already registered');
     }
@@ -50,7 +49,7 @@ function doPost(e) {
       data.source || 'Website Form',
       data.interests || '',
       data.company || '',
-      e.source || 'Direct'
+      'Direct'
     ];
     
     // Add data to sheet
@@ -58,10 +57,13 @@ function doPost(e) {
     
     // Optional: Send notification email
     if (NOTIFICATION_EMAIL && NOTIFICATION_EMAIL !== 'your-email@example.com') {
-      sendNotificationEmail(data);
+      try {
+        sendNotificationEmail(data);
+      } catch (emailError) {
+        console.error('Email notification failed:', emailError);
+      }
     }
     
-    // Log success
     console.log('Successfully added:', data.email);
     
     return createResponse(200, 'Successfully added to waitlist', {
@@ -90,16 +92,26 @@ function doGet(e) {
  */
 function getOrCreateSheet() {
   try {
-    // Try to get existing spreadsheet
-    let sheet = SpreadsheetApp.getActiveSheet();
+    let spreadsheet;
+    let sheet;
     
-    // If no active sheet, create new spreadsheet
-    if (!sheet || sheet.getName() !== SHEET_NAME) {
-      const spreadsheet = SpreadsheetApp.create('BlockWill Waitlist Data');
+    // Try to find existing spreadsheet by name
+    const files = DriveApp.getFilesByName('BlockWill Waitlist Data');
+    if (files.hasNext()) {
+      spreadsheet = SpreadsheetApp.openById(files.next().getId());
+      sheet = spreadsheet.getSheetByName(SHEET_NAME);
+      if (!sheet) {
+        sheet = spreadsheet.insertSheet(SHEET_NAME);
+      }
+    } else {
+      // Create new spreadsheet
+      spreadsheet = SpreadsheetApp.create('BlockWill Waitlist Data');
       sheet = spreadsheet.getActiveSheet();
       sheet.setName(SHEET_NAME);
-      
-      // Set up headers
+    }
+    
+    // Set up headers if sheet is empty
+    if (sheet.getLastRow() === 0) {
       const headers = [
         'Timestamp',
         'Name', 
@@ -113,8 +125,6 @@ function getOrCreateSheet() {
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
       sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
       sheet.setFrozenRows(1);
-      
-      // Auto-resize columns
       sheet.autoResizeColumns(1, headers.length);
     }
     
@@ -159,11 +169,9 @@ New waitlist registration:
 Name: ${data.name || 'Not provided'}
 Email: ${data.email}
 Source: ${data.source || 'Website Form'}
-Interests: ${data.interests || 'Not specified'}
-Company: ${data.company || 'Not provided'}
 Timestamp: ${new Date().toLocaleString()}
 
-View the full waitlist: ${SpreadsheetApp.getActiveSpreadsheet().getUrl()}
+View the waitlist: ${SpreadsheetApp.getActiveSpreadsheet().getUrl()}
     `;
     
     MailApp.sendEmail(NOTIFICATION_EMAIL, subject, body);
@@ -174,7 +182,7 @@ View the full waitlist: ${SpreadsheetApp.getActiveSpreadsheet().getUrl()}
 }
 
 /**
- * Create standardized response object
+ * Create standardized response object - SIMPLIFIED VERSION
  */
 function createResponse(status, message, data = null) {
   const response = {
@@ -207,12 +215,11 @@ function testSetup() {
     const testData = {
       name: 'Test User',
       email: 'test@blockwill.io',
-      source: 'Test Run',
-      timestamp: new Date().toISOString()
+      source: 'Test Run'
     };
     
     const rowData = [
-      testData.timestamp,
+      new Date().toISOString(),
       testData.name,
       testData.email,
       testData.source,
@@ -230,7 +237,10 @@ function testSetup() {
     
     console.log('🎉 All tests passed! Your setup is ready.');
     
+    return 'Setup test completed successfully!';
+    
   } catch (error) {
     console.error('❌ Test failed:', error.toString());
+    return 'Setup test failed: ' + error.toString();
   }
 }
