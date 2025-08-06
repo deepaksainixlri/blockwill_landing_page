@@ -21,7 +21,8 @@
       "Bash(git pull:*)",
       "WebFetch(domain:blockwill.io)",
       "WebFetch(domain:www.blockwill.io)",
-      "WebFetch(domain:script.google.com)"
+      "WebFetch(domain:script.google.com)",
+      "WebFetch(domain:script.googleusercontent.com)"
     ],
     "deny": []
   }

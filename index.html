@@ -1521,13 +1521,15 @@
                  */
                 async function submitToGoogleSheets(data) {
                     try {
+                        // Use form-encoded data to avoid preflight CORS issues
+                        const formData = new URLSearchParams();
+                        Object.keys(data).forEach(key => {
+                            formData.append(key, data[key]);
+                        });
+                        
                         const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(data),
-                            mode: 'cors'
+                            body: formData
                         });
                         
                         if (!response.ok) {
