@@ -1,63 +1,93 @@
-const http = require('http');
-const fs = require('fs');
+const express = require('express');
 const path = require('path');
+const app = express();
+const PORT = process.env.PORT || 3001;
 
-const PORT = 3001;
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('.'));
 
-const server = http.createServer((req, res) => {
-    let filePath = '.' + req.url;
-    
-    // Default to index.html
-    if (filePath === './') {
-        filePath = './index.html';
-    }
-    
-    // Redirect old landing page requests to index
-    if (req.url === '/pages/landing_page.html' || req.url === '/landing_page.html') {
-        res.writeHead(301, { 'Location': '/' });
-        res.end();
-        return;
-    }
-    
-    const extname = String(path.extname(filePath)).toLowerCase();
-    const mimeTypes = {
-        '.html': 'text/html',
-        '.js': 'text/javascript',
-        '.css': 'text/css',
-        '.json': 'application/json',
-        '.png': 'image/png',
-        '.jpg': 'image/jpg',
-        '.gif': 'image/gif',
-        '.svg': 'image/svg+xml',
-        '.wav': 'audio/wav',
-        '.mp4': 'video/mp4',
-        '.woff': 'application/font-woff',
-        '.ttf': 'application/font-ttf',
-        '.eot': 'application/vnd.ms-fontobject',
-        '.otf': 'application/font-otf',
-        '.wasm': 'application/wasm'
-    };
+// Store waitlist submissions in memory (in production, use a database)
+let waitlistSubmissions = [];
 
-    const contentType = mimeTypes[extname] || 'application/octet-stream';
+// Routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-    fs.readFile(filePath, (error, content) => {
-        if (error) {
-            if (error.code === 'ENOENT') {
-                res.writeHead(404, { 'Content-Type': 'text/html' });
-                res.end('404 - File Not Found', 'utf-8');
-            } else {
-                res.writeHead(500);
-                res.end('Sorry, there was an error: ' + error.code + ' ..\n');
-            }
-        } else {
-            res.writeHead(200, { 'Content-Type': contentType });
-            res.end(content, 'utf-8');
+// Handle waitlist form submissions
+app.post('/api/waitlist', (req, res) => {
+    try {
+        const { email, name, country, state } = req.body;
+        
+        // Validate email
+        if (!email || !email.includes('@')) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Please provide a valid email address' 
+            });
         }
+        
+        // Check if email already exists
+        const existingSubmission = waitlistSubmissions.find(sub => sub.email === email);
+        if (existingSubmission) {
+            return res.status(409).json({ 
+                success: false, 
+                message: 'This email is already on our waitlist!' 
+            });
+        }
+        
+        // Add to waitlist
+        const submission = {
+            email,
+            name: name || '',
+            country: country || '',
+            state: state || '',
+            timestamp: new Date().toISOString(),
+            id: Date.now().toString()
+        };
+        
+        waitlistSubmissions.push(submission);
+        
+        console.log('New waitlist submission:', submission);
+        console.log('Total submissions:', waitlistSubmissions.length);
+        
+        res.json({ 
+            success: true, 
+            message: 'Successfully joined the waitlist!',
+            submissionCount: waitlistSubmissions.length
+        });
+        
+    } catch (error) {
+        console.error('Error processing waitlist submission:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Internal server error. Please try again.' 
+        });
+    }
+});
+
+// Get waitlist statistics
+app.get('/api/waitlist/stats', (req, res) => {
+    res.json({
+        totalSubmissions: waitlistSubmissions.length,
+        recentSubmissions: waitlistSubmissions.slice(-10) // Last 10 submissions
     });
 });
 
-server.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}/`);
-    console.log(`📱 Main site: http://localhost:${PORT}/pages/landing_page.html`);
-    console.log('Press Ctrl+C to stop the server');
+// Health check
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        submissions: waitlistSubmissions.length
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`🚀 BlockWill server running on http://localhost:${PORT}`);
+    console.log(`📊 Waitlist submissions: ${waitlistSubmissions.length}`);
+    console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+    console.log(`📈 Stats: http://localhost:${PORT}/api/waitlist/stats`);
 });

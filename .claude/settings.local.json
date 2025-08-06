@@ -22,7 +22,13 @@
       "WebFetch(domain:blockwill.io)",
       "WebFetch(domain:www.blockwill.io)",
       "WebFetch(domain:script.google.com)",
-      "WebFetch(domain:script.googleusercontent.com)"
+      "WebFetch(domain:script.googleusercontent.com)",
+      "WebFetch(domain:api.countrystatecity.in)",
+      "WebFetch(domain:restcountries.com)",
+      "WebFetch(domain:web3forms.com)",
+      "WebFetch(domain:docs.web3forms.com)",
+      "WebFetch(domain:flowyform.com)",
+      "Bash(npm start)"
     ],
     "deny": []
   }

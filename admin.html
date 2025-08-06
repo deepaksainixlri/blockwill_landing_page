@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockWill Admin - Waitlist Submissions</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: #3b82f6;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        .stat-label {
+            color: #64748b;
+            margin-top: 5px;
+        }
+        .submissions {
+            padding: 20px;
+        }
+        .submissions h2 {
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #374151;
+        }
+        tr:hover {
+            background: #f8fafc;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px;
+        }
+        .export-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .export-btn:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BlockWill Admin Dashboard</h1>
+            <p>Waitlist Submissions</p>
+        </div>
+        
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="total-submissions">-</div>
+                <div class="stat-label">Total Submissions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="today-submissions">-</div>
+                <div class="stat-label">Today's Submissions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="top-country">-</div>
+                <div class="stat-label">Top Country</div>
+            </div>
+        </div>
+        
+        <div class="submissions">
+            <h2>Recent Submissions</h2>
+            <button class="export-btn" onclick="exportToCSV()">Export to CSV</button>
+            <div id="loading" class="loading">Loading submissions...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            <table id="submissions-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Country</th>
+                        <th>State</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="submissions-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const supabase = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        
+        // Load submissions
+        async function loadSubmissions() {
+            try {
+                const { data, error } = await supabase
+                    .from('waitlist_submissions')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                displaySubmissions(data);
+                updateStats(data);
+                
+            } catch (error) {
+                console.error('Error loading submissions:', error);
+                document.getElementById('error').textContent = 'Error loading submissions: ' + error.message;
+                document.getElementById('error').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        function displaySubmissions(submissions) {
+            const tbody = document.getElementById('submissions-body');
+            const table = document.getElementById('submissions-table');
+            
+            tbody.innerHTML = '';
+            
+            submissions.forEach(submission => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${submission.email}</td>
+                    <td>${submission.name || '-'}</td>
+                    <td>${submission.country || '-'}</td>
+                    <td>${submission.state || '-'}</td>
+                    <td>${new Date(submission.created_at).toLocaleDateString()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            table.style.display = 'table';
+        }
+        
+        function updateStats(submissions) {
+            const total = submissions.length;
+            const today = new Date().toDateString();
+            const todayCount = submissions.filter(s => 
+                new Date(s.created_at).toDateString() === today
+            ).length;
+            
+            // Get top country
+            const countries = {};
+            submissions.forEach(s => {
+                if (s.country) {
+                    countries[s.country] = (countries[s.country] || 0) + 1;
+                }
+            });
+            const topCountry = Object.keys(countries).length > 0 
+                ? Object.keys(countries).reduce((a, b) => countries[a] > countries[b] ? a : b)
+                : 'N/A';
+            
+            document.getElementById('total-submissions').textContent = total;
+            document.getElementById('today-submissions').textContent = todayCount;
+            document.getElementById('top-country').textContent = topCountry;
+        }
+        
+        function exportToCSV() {
+            const table = document.getElementById('submissions-table');
+            const rows = table.querySelectorAll('tr');
+            
+            let csv = 'Email,Name,Country,State,Date\n';
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length > 0) {
+                    const rowData = Array.from(cells).map(cell => 
+                        `"${cell.textContent.replace(/"/g, '""')}"`
+                    );
+                    csv += rowData.join(',') + '\n';
+                }
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `waitlist-submissions-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadSubmissions);
+        
+        // Refresh every 30 seconds
+        setInterval(loadSubmissions, 30000);
+    </script>
+</body>
+</html>

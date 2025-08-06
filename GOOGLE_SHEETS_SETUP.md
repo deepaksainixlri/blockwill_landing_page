@@ -1,16 +1,16 @@
-# BlockWill Waitlist - Google Sheets Integration Setup
+# 📊 BlockWill Waitlist - Google Sheets Integration Setup
 
-This guide will help you set up Google Sheets integration to automatically store all waitlist form submissions from your BlockWill website.
+This guide will help you set up Google Sheets integration to automatically store all waitlist form submissions from your BlockWill website **with zero CORS errors**.
 
 ## 🎯 What This Does
 
 When users submit your waitlist form, their information will be automatically saved to a Google Sheet with:
-- Timestamp
-- Name (if provided)
-- Email address
-- Source (Website Form)
-- Additional metadata (URL, User Agent)
-- Optional notification emails
+- ✅ Timestamp of submission
+- ✅ Name (if provided)  
+- ✅ Email address
+- ✅ Country selection
+- ✅ State/Province selection
+- ✅ Automatic email notifications
 
 ## 📋 Prerequisites
 
@@ -32,11 +32,12 @@ When users submit your waitlist form, their information will be automatically sa
 
 3. **Replace Default Code**
    - Delete all existing code in `Code.gs`
-   - Copy and paste the entire contents of `/google-apps-script/Code.gs` from your project
+   - Copy and paste the entire contents from `google-apps-script.js` file in your project folder
 
 4. **Configure Settings**
-   - In the code, find this line: `const NOTIFICATION_EMAIL = 'your-email@example.com';`
-   - Replace with your actual email to receive notifications (optional)
+   - In the code, find this line: `const EMAIL_RECIPIENT = 'hello@blockwill.io';`
+   - Replace with your actual email to receive notifications
+   - Optionally change: `const SHEET_NAME = 'BlockWill Waitlist';`
 
 ### Step 2: Deploy as Web App
 
@@ -67,14 +68,14 @@ When users submit your waitlist form, their information will be automatically sa
 
 ### Step 3: Update Your Website
 
-1. **Update the JavaScript Configuration**
+1. **Update the Form Action**
    - Open your `index.html` file
-   - Find this line: `const GOOGLE_APPS_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';`
+   - Find line 175: `<form id="waitlist-form" action="YOUR_GOOGLE_APPS_SCRIPT_URL_HERE" method="POST" class="space-y-6">`
    - Replace `YOUR_GOOGLE_APPS_SCRIPT_URL_HERE` with the URL you copied from Step 2
 
 2. **Example:**
-   ```javascript
-   const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXXXXXXXXXXXXXXXX/exec';
+   ```html
+   <form id="waitlist-form" action="https://script.google.com/macros/s/AKfycbxXXXXXXXXXXXXXXXX/exec" method="POST" class="space-y-6">
    ```
 
 ### Step 4: Test Your Setup
