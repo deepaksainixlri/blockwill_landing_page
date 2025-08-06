@@ -12,9 +12,11 @@ const server = http.createServer((req, res) => {
         filePath = './index.html';
     }
     
-    // Handle landing_page.html direct access
-    if (req.url === '/landing_page.html') {
-        filePath = './pages/landing_page.html';
+    // Redirect old landing page requests to index
+    if (req.url === '/pages/landing_page.html' || req.url === '/landing_page.html') {
+        res.writeHead(301, { 'Location': '/' });
+        res.end();
+        return;
     }
     
     const extname = String(path.extname(filePath)).toLowerCase();

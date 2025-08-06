@@ -5,7 +5,17 @@
       "Bash(python:*)",
       "Bash(pkill:*)",
       "Bash(npx live-server:*)",
-      "Bash(node server.js)"
+      "Bash(node server.js)",
+      "Bash(rm:*)",
+      "WebFetch(domain:blockwill-the-unified-legacy-operating-system-855789539507.us-west1.run.app)",
+      "Bash(npm run serve:*)",
+      "Bash(ls:*)",
+      "Bash(cp:*)",
+      "Bash(copy:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }

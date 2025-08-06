@@ -19,8 +19,7 @@ This is a static HTML landing page for BlockWill, a blockchain-based estate plan
 ## Architecture & Structure
 
 ### Core Files
-- `index.html` - Entry point with redirect functionality to landing page
-- `pages/landing_page.html` - Main landing page with full BlockWill content
+- `index.html` - Main Landing page
 - `css/tailwind.css` - Tailwind source file with custom utilities and imports
 - `css/main.css` - Compiled CSS output (generated, do not edit manually)
 - `tailwind.config.js` - Tailwind configuration with custom theme, colors, and fonts
