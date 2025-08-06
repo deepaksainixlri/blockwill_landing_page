@@ -3,19 +3,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Accenture-inspired purple gradient system
+        // Accenture-inspired solid purple color system
         primary: {
-          50: '#f8f0ff',
-          100: '#ede0ff',
-          200: '#d9c2ff',
-          300: '#bf99ff',
-          400: '#a366ff',
-          500: '#A100FF', // Accenture brand purple
-          600: '#8B00E6',
-          700: '#6A00B3',
-          800: '#4C0080',
-          900: '#2E004D',
-          950: '#1A002E',
+          50: '#f3f0ff',
+          100: '#e9e3ff',
+          200: '#d6ccff',
+          300: '#b8a3ff',
+          400: '#9670ff',
+          500: '#6B00B3', // Accenture purple (solid, professional)
+          600: '#5D009C',
+          700: '#4E0084',
+          800: '#40006B',
+          900: '#330055',
+          950: '#1A002B',
         },
         secondary: {
           50: '#f0fdff',

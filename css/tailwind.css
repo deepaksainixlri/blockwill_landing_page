@@ -64,7 +64,7 @@
   }
   
   .btn-primary {
-    @apply btn bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-soft hover:shadow-medium hover:scale-[1.02] active:scale-[0.98] rounded-2xl px-8 py-4 text-lg;
+    @apply btn bg-primary-500 text-white shadow-soft hover:bg-primary-600 hover:shadow-medium hover:scale-[1.02] active:scale-[0.98] rounded-2xl px-8 py-4 text-lg;
   }
   
   .btn-secondary {
@@ -155,45 +155,9 @@
   }
   
   /* Hero Image Inspired Gradient Background */
-  .hero-gradient {
-    background: linear-gradient(135deg, 
-      #8B4FBF 0%,           /* Rich purple matching hero image */
-      #7A3FA7 30%,          /* Deep purple */
-      #693690 60%,          /* Medium purple */
-      #5D2E85 85%,          /* Deeper purple */
-      #542A7B 100%          /* Darkest purple */
-    );
-    background-size: 400% 400%;
-    animation: gradientShift 8s ease infinite;
-  }
+  /* Removed hero-gradient - using solid colors instead */
 
-  /* BlockWill Brand Gradient */
-  .blockwill-gradient {
-    background: linear-gradient(135deg, 
-      rgb(124, 58, 237) 0%,
-      rgb(168, 85, 247) 50%,
-      rgb(109, 40, 217) 100%
-    );
-  }
-  
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
-  /* BlockWill Mesh Gradient Backgrounds */
-  .mesh-gradient-1 {
-    background: radial-gradient(at 40% 20%, rgb(120, 119, 198) 0px, transparent 50%), 
-                radial-gradient(at 80% 0%, rgb(255, 119, 198) 0px, transparent 50%), 
-                radial-gradient(at 0% 50%, rgb(255, 0, 128) 0px, transparent 50%);
-  }
-  
-  .mesh-gradient-2 {
-    background: radial-gradient(at 0% 0%, rgb(253, 186, 116) 0px, transparent 50%), 
-                radial-gradient(at 50% 0%, rgb(255, 154, 158) 0px, transparent 50%), 
-                radial-gradient(at 100% 0%, rgb(250, 208, 196) 0px, transparent 50%);
-  }
+  /* Removed all gradient classes - using solid Accenture purple theme */
 
   /* Accenture Hero Mesh Gradient */
   .mesh-gradient-hero {
