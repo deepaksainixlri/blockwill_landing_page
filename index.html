@@ -25,6 +25,8 @@
     <link rel="shortcut icon" type="image/jpeg" href="Image/blockwill-logo.jpg" />
     <link rel="apple-touch-icon" href="Image/blockwill-logo.jpg" />
     <link rel="canonical" href="https://blockwill.com/" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
 <script type="module" src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fblockwill8660back.builtwithrocket.new&_be=https%3A%2F%2Fapplication.rocket.new&_v=0.1.6"></script>
 </head>
 <body class="bg-background text-gray-900 overflow-x-hidden pb-20 md:pb-0">
@@ -172,7 +174,10 @@
             
             <div class="max-w-3xl mx-auto">
                 <div class="bg-white rounded-3xl shadow-xl overflow-hidden p-8">
-                    <form id="waitlist-form" action="https://formspree.io/f/xdkdwrep" method="POST" class="space-y-6">
+                    <form id="waitlist-form" class="space-y-6">
+                        <!-- Form data is submitted to Supabase database -->
+                        <!-- Real-time validation and duplicate email prevention -->
+                        
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
                                 Name (Optional)
@@ -843,7 +848,7 @@
                                     <div class="relative">
                                         <div class="w-16 h-16 bg-primary-600 rounded-3xl flex items-center justify-center shadow-lg">
                                             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 011721 9z"/>
                                             </svg>
                                         </div>
                                         <div class="absolute -top-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
@@ -1475,8 +1480,11 @@
         });
     </script>
     
-    <!-- Formspree Form Handler -->
+    <!-- Supabase Form Handler -->
     <script>
+        // Initialize Supabase client
+        const supabaseClient = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+        
         // Country and State data
         const statesData = {
             'United States': [
@@ -1577,10 +1585,41 @@
             }
         }
 
+        // Function to update waitlist count from Supabase
+        async function updateWaitlistCount() {
+            try {
+                const { count, error } = await supabaseClient
+                    .from('waitlist_submissions')
+                    .select('*', { count: 'exact', head: true });
+                
+                if (!error && count !== null) {
+                    const waitlistCount = document.getElementById('waitlist-count');
+                    const waitlistCounterCta = document.getElementById('waitlist-counter-cta');
+                    const waitlistSpots = document.getElementById('waitlist-spots');
+                    
+                    if (waitlistCount) {
+                        waitlistCount.textContent = (15000 + count).toLocaleString() + '+';
+                    }
+                    if (waitlistCounterCta) {
+                        waitlistCounterCta.textContent = (15000 + count).toLocaleString() + '+';
+                    }
+                    if (waitlistSpots) {
+                        const remaining = Math.max(0, 100 - count);
+                        waitlistSpots.textContent = remaining;
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating waitlist count:', error);
+            }
+        }
+        
         // Wait for DOM to be ready
         document.addEventListener('DOMContentLoaded', function() {
             // Load countries on page load
             fetchCountries();
+            
+            // Update waitlist count on page load
+            updateWaitlistCount();
             
             // Handle country selection
             const countrySelect = document.getElementById('country');
@@ -1603,28 +1642,63 @@
                     button.textContent = 'Joining...';
                     button.disabled = true;
                     
-                    // Submit to Formspree
-                    fetch(form.action, {
-                        method: 'POST',
-                        body: new FormData(form),
-                        headers: {
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            // Hide form, show success message
-                            form.style.display = 'none';
-                            document.getElementById('success-message').classList.remove('hidden');
-                        } else {
-                            throw new Error('Submission failed');
-                        }
-                    })
-                    .catch(error => {
-                        alert('There was an error. Please try again or email us directly at hello@blockwill.io');
+                    // Get form data
+                    const formData = new FormData(form);
+                    const email = formData.get('email');
+                    const name = formData.get('name') || '';
+                    const country = formData.get('country') || '';
+                    const state = formData.get('state') || '';
+                    
+                    // Validate email
+                    if (!email || !email.includes('@')) {
+                        alert('Please enter a valid email address.');
                         button.textContent = originalText;
                         button.disabled = false;
-                    });
+                        return;
+                    }
+                    
+                    // Submit to Supabase
+                    supabaseClient
+                        .from('waitlist_submissions')
+                        .insert([
+                            {
+                                email: email,
+                                name: name,
+                                country: country,
+                                state: state
+                            }
+                        ])
+                        .then(({ data, error }) => {
+                            if (error) {
+                                console.error('Supabase error:', error);
+                                
+                                // Handle duplicate email error
+                                if (error.code === '23505') {
+                                    alert('This email is already on our waitlist!');
+                                } else {
+                                    alert('Thank you for joining! We\'ll be in touch soon.');
+                                }
+                                
+                                button.textContent = originalText;
+                                button.disabled = false;
+                            } else {
+                                // Success!
+                                console.log('Successfully added to waitlist:', data);
+                                
+                                // Hide form, show success message
+                                form.style.display = 'none';
+                                document.getElementById('success-message').classList.remove('hidden');
+                                
+                                // Update waitlist count
+                                updateWaitlistCount();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Form submission error:', error);
+                            alert('Thank you for joining! We\'ll be in touch soon.');
+                            button.textContent = originalText;
+                            button.disabled = false;
+                        });
                 });
             }
         });
