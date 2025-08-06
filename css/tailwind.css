@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Primary Colors - Deep Purple for Trust & Luxury */
+  --color-primary: #4a148c; /* Deep purple for institutional trust and luxury */
+  --color-primary-light: #7b1fa2; /* Medium purple for supporting elements */
+  
+  /* Accent Colors - Elegant Gold for Premium Feel */
+  --color-accent: #e8eaf6; /* Light purple-tinted white for CTAs and conversion moments */
+  
+  /* Background Colors - Clean White Canvas */
+  --color-background: #ffffff; /* Pure white for clean luxury canvas */
+  --color-surface: #f8f9fa; /* Off-white for cards and forms */
+  
+  /* Text Colors */
+  --color-text-primary: #2d2d2d; /* Dark gray for high contrast */
+  --color-text-secondary: #6c757d; /* Medium gray for secondary text */
+  
+  /* Status Colors */
+  --color-success: #7c4dff; /* Purple-tinted success for brand consistency */
+  --color-warning: #9c27b0; /* Purple warning for brand consistency */
+  --color-error: #e91e63; /* Pink error for softer feel */
+  
+  /* Border Colors */
+  --color-border: #e1e5e9; /* Light gray for minimal borders */
+  
+  /* Shadow Colors - Purple-tinted for luxury feel */
+  --shadow-cta: 0 4px 12px rgba(74, 20, 140, 0.15);
+  --shadow-card: 0 2px 8px rgba(74, 20, 140, 0.08);
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    color: var(--color-text-primary);
+    background-color: var(--color-background);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white font-semibold px-6 py-3 rounded-lg transition-all duration-250 ease-in-out;
+    box-shadow: var(--shadow-cta);
+  }
+  
+  .btn-primary:hover {
+    @apply transform -translate-y-0.5 bg-primary-light;
+    box-shadow: 0 6px 16px rgba(74, 20, 140, 0.25);
+  }
+  
+  .card {
+    @apply bg-surface rounded-lg p-6;
+    box-shadow: var(--shadow-card);
+  }
+  
+  .form-input {
+    @apply border border-border rounded-md px-4 py-2 transition-colors duration-250 ease-in-out;
+  }
+  
+  .form-input:focus {
+    @apply border-primary outline-none;
+  }
+  
+  .text-accent-serif {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer utilities {
+  .transition-250 {
+    transition: all 250ms ease-in-out;
+  }
+  
+  .shadow-cta {
+    box-shadow: var(--shadow-cta);
+  }
+  
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+}
+
+/* CSS for color definitions */
+.bg-primary { background-color: var(--color-primary); }
+.bg-primary-light { background-color: var(--color-primary-light); }
+.bg-accent { background-color: var(--color-accent); }
+.bg-background { background-color: var(--color-background); }
+.bg-surface { background-color: var(--color-surface); }
+.bg-success { background-color: var(--color-success); }
+.bg-warning { background-color: var(--color-warning); }
+.bg-error { background-color: var(--color-error); }
+.bg-border { background-color: var(--color-border); }
+
+.text-primary { color: var(--color-primary); }
+.text-primary-light { color: var(--color-primary-light); }
+.text-accent { color: var(--color-accent); }
+.text-text-primary { color: var(--color-text-primary); }
+.text-text-secondary { color: var(--color-text-secondary); }
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-error { color: var(--color-error); }
+
+.border-primary { border-color: var(--color-primary); }
+.border-primary-light { border-color: var(--color-primary-light); }
+.border-accent { border-color: var(--color-accent); }
+.border-border { border-color: var(--color-border); }
+.border-success { border-color: var(--color-success); }
+.border-warning { border-color: var(--color-warning); }
+.border-error { border-color: var(--color-error); }
+
+.shadow-cta-hover {
+  box-shadow: 0 6px 16px rgba(74, 20, 140, 0.25);
+}

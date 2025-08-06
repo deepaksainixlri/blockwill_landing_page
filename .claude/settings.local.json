@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:css:*)",
+      "Bash(python:*)",
+      "Bash(pkill:*)",
+      "Bash(npx live-server:*)",
+      "Bash(node server.js)"
+    ],
+    "deny": []
+  }
+}
