@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockWill Waitlist Form Test</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">Test Waitlist Form</h2>
+        
+        <form id="test-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Name (Optional)</label>
+                <input type="text" 
+                       name="name" 
+                       placeholder="Enter your name"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+                <input type="email" 
+                       name="email" 
+                       placeholder="you@example.com"
+                       required
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            </div>
+            
+            <button type="submit" class="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
+                Join Waitlist
+            </button>
+        </form>
+        
+        <div id="test-results" class="mt-6 text-sm text-gray-600"></div>
+    </div>
+
+    <script>
+        // Test configuration - update this with your Google Apps Script URL
+        const GOOGLE_APPS_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        
+        document.getElementById('test-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const resultsDiv = document.getElementById('test-results');
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            
+            try {
+                button.textContent = 'Testing...';
+                button.disabled = true;
+                
+                const formData = new FormData(this);
+                const data = {
+                    name: formData.get('name') || '',
+                    email: formData.get('email'),
+                    source: 'Test Form',
+                    timestamp: new Date().toISOString()
+                };
+                
+                resultsDiv.innerHTML = `
+                    <h3 class="font-semibold text-gray-900">Test Data:</h3>
+                    <pre class="bg-gray-100 p-3 rounded mt-2 text-xs overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                if (GOOGLE_APPS_SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                    resultsDiv.innerHTML += `
+                        <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                            <p class="text-yellow-800 font-medium">⚠️ Setup Required</p>
+                            <p class="text-yellow-700 text-xs mt-1">Update GOOGLE_APPS_SCRIPT_URL in this file to test the actual integration.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                    mode: 'cors'
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 200) {
+                    resultsDiv.innerHTML += `
+                        <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded">
+                            <p class="text-green-800 font-medium">✅ Success!</p>
+                            <p class="text-green-700 text-xs mt-1">Data submitted to Google Sheets successfully.</p>
+                        </div>
+                    `;
+                    this.reset();
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                console.error('Test error:', error);
+                resultsDiv.innerHTML += `
+                    <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded">
+                        <p class="text-red-800 font-medium">❌ Error</p>
+                        <p class="text-red-700 text-xs mt-1">${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -85,6 +85,17 @@ The deployment workflow:
 2. Check the status of recent workflow runs
 3. Click on a run to see detailed logs
 
+## 📝 Google Sheets Waitlist Integration
+
+Your website includes Google Sheets integration for storing waitlist submissions. To set this up:
+
+1. **Follow the setup guide**: See `GOOGLE_SHEETS_SETUP.md` for detailed instructions
+2. **Quick setup**: 
+   - Create Google Apps Script from `/google-apps-script/Code.gs`
+   - Deploy as web app
+   - Update `GOOGLE_APPS_SCRIPT_URL` in `index.html`
+3. **Test**: Use `test-form.html` to verify the integration works
+
 ## Alternative Deployment Methods
 
 If GitHub Pages doesn't meet your needs, consider:

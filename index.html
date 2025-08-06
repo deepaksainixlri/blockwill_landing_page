@@ -177,12 +177,14 @@
                             <div>
                                 <label class="block text-sm font-semibold text-gray-900 mb-2">Name (Optional)</label>
                                 <input type="text" 
+                                       name="name"
                                        placeholder="Enter your name" 
                                        class="form-input-lg" />
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-gray-900 mb-2">Email Address *</label>
                                 <input type="email" 
+                                       name="email"
                                        placeholder="you@example.com" 
                                        class="form-input-lg" 
                                        required />
@@ -1427,42 +1429,189 @@
                     });
                 }
                 
-                // Form handling with validation
+                // BlockWill Waitlist Form Handler with Google Sheets Integration
+                
+                // Configuration - UPDATE THIS URL after deploying your Google Apps Script
+                const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxD1rt6c3f0ad6upaxhSnYaDIic6JH6EVVQmt6b_XpTWe_sclRflDgf1CORu41e1L6zKA/exec';
+                
                 const forms = document.querySelectorAll('form');
                 forms.forEach(form => {
-                    form.addEventListener('submit', function(e) {
+                    form.addEventListener('submit', async function(e) {
                         e.preventDefault();
+                        
                         try {
-                            // Basic validation
+                            // Get form data
+                            const formData = new FormData(form);
+                            const nameInput = form.querySelector('input[type="text"]');
                             const emailInput = form.querySelector('input[type="email"]');
-                            if (emailInput) {
-                                const email = emailInput.value.trim();
-                                if (!email || !email.includes('@')) {
-                                    alert('Please enter a valid email address');
-                                    return;
-                                }
+                            
+                            const name = nameInput ? nameInput.value.trim() : '';
+                            const email = emailInput ? emailInput.value.trim() : '';
+                            
+                            // Enhanced validation
+                            if (!email) {
+                                showFormMessage(form, 'Please enter your email address', 'error');
+                                return;
                             }
                             
-                            // Show success message
+                            if (!isValidEmail(email)) {
+                                showFormMessage(form, 'Please enter a valid email address', 'error');
+                                return;
+                            }
+                            
+                            // Show loading state
                             const button = form.querySelector('button[type="submit"]');
-                            if (button) {
-                                const originalText = button.textContent;
-                                button.textContent = 'Success! Check your email';
-                                button.disabled = true;
-                                setTimeout(() => {
-                                    button.textContent = originalText;
-                                    button.disabled = false;
-                                    form.reset();
-                                }, 3000);
+                            const originalButtonContent = button.innerHTML;
+                            button.disabled = true;
+                            button.innerHTML = '<span>Joining Waitlist...</span>';
+                            
+                            // Prepare data for Google Sheets
+                            const submitData = {
+                                name: name,
+                                email: email,
+                                source: 'BlockWill Landing Page',
+                                timestamp: new Date().toISOString(),
+                                url: window.location.href,
+                                userAgent: navigator.userAgent.substring(0, 100)
+                            };
+                            
+                            // Submit to Google Sheets (if URL is configured)
+                            if (GOOGLE_APPS_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                                await submitToGoogleSheets(submitData);
+                                showFormMessage(form, '🎉 Successfully joined the waitlist! Check your email for confirmation.', 'success');
+                                
+                                // Track successful submission
+                                if (typeof gtag !== 'undefined') {
+                                    gtag('event', 'waitlist_signup', {
+                                        'method': 'form',
+                                        'email': email
+                                    });
+                                }
+                            } else {
+                                // Fallback if Google Sheets not configured yet
+                                console.log('Form data:', submitData);
+                                showFormMessage(form, '✅ Thank you for joining! (Setup Google Sheets integration to save data)', 'success');
                             }
                             
-                            console.log('Form submitted successfully');
+                            // Reset form after successful submission
+                            setTimeout(() => {
+                                form.reset();
+                                button.disabled = false;
+                                button.innerHTML = originalButtonContent;
+                            }, 3000);
+                            
                         } catch (error) {
                             console.error('Error submitting form:', error);
-                            alert('An error occurred. Please try again.');
+                            showFormMessage(form, 'An error occurred. Please try again later.', 'error');
+                            
+                            // Re-enable button
+                            const button = form.querySelector('button[type="submit"]');
+                            if (button) {
+                                button.disabled = false;
+                                button.innerHTML = originalButtonContent;
+                            }
                         }
                     });
                 });
+                
+                /**
+                 * Submit form data to Google Sheets via Apps Script
+                 */
+                async function submitToGoogleSheets(data) {
+                    try {
+                        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(data),
+                            mode: 'cors'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.status !== 200) {
+                            throw new Error(result.message || 'Failed to submit to Google Sheets');
+                        }
+                        
+                        console.log('Successfully submitted to Google Sheets:', result);
+                        return result;
+                        
+                    } catch (error) {
+                        console.error('Google Sheets submission error:', error);
+                        throw error;
+                    }
+                }
+                
+                /**
+                 * Enhanced email validation
+                 */
+                function isValidEmail(email) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    return emailRegex.test(email);
+                }
+                
+                /**
+                 * Show form success/error messages
+                 */
+                function showFormMessage(form, message, type = 'success') {
+                    // Remove existing message
+                    const existingMessage = form.querySelector('.form-message');
+                    if (existingMessage) {
+                        existingMessage.remove();
+                    }
+                    
+                    // Create message element
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `form-message p-4 rounded-lg text-center font-medium ${
+                        type === 'success' 
+                            ? 'bg-green-50 text-green-800 border border-green-200' 
+                            : 'bg-red-50 text-red-800 border border-red-200'
+                    }`;
+                    messageDiv.textContent = message;
+                    
+                    // Insert message before submit button
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    form.insertBefore(messageDiv, submitButton);
+                    
+                    // Auto-remove error messages after 5 seconds
+                    if (type === 'error') {
+                        setTimeout(() => {
+                            if (messageDiv.parentNode) {
+                                messageDiv.remove();
+                            }
+                        }, 5000);
+                    }
+                }
+                
+                /**
+                 * Add loading state styles
+                 */
+                const loadingStyles = `
+                    .form-loading {
+                        opacity: 0.7;
+                        pointer-events: none;
+                    }
+                    
+                    .form-message {
+                        margin-top: 1rem;
+                        animation: fadeIn 0.3s ease-in;
+                    }
+                    
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(-10px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                `;
+                
+                // Inject styles
+                const styleSheet = document.createElement('style');
+                styleSheet.textContent = loadingStyles;
+                document.head.appendChild(styleSheet);
                 
                 // Initialize
                 showQuestion(1);
