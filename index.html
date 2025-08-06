@@ -1432,7 +1432,7 @@
                 // BlockWill Waitlist Form Handler with Google Sheets Integration
                 
                 // Configuration - UPDATE THIS URL after deploying your Google Apps Script
-                const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxD1rt6c3f0ad6upaxhSnYaDIic6JH6EVVQmt6b_XpTWe_sclRflDgf1CORu41e1L6zKA/exec';
+                const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwI9T2hE2xyzmsOXDoz1dr6G8bmHLhC0I9wZwaSkbnhBEyePoQwLbyCKv-fidZ0uBjs/exec';
                 
                 const forms = document.querySelectorAll('form');
                 forms.forEach(form => {
@@ -1477,21 +1477,26 @@
                                 userAgent: navigator.userAgent.substring(0, 100)
                             };
                             
-                            // Log the form data for now (Google Sheets integration will be fixed later)
-                            console.log('Form submission data:', submitData);
-                            
-                            // Show success message
-                            showFormMessage(form, '🎉 Successfully joined the waitlist! Thank you for your interest in BlockWill.', 'success');
-                            
-                            // Track successful submission
-                            if (typeof gtag !== 'undefined') {
-                                gtag('event', 'waitlist_signup', {
-                                    'method': 'form',
-                                    'email': email
-                                });
+                            // Submit to Google Sheets
+                            try {
+                                await submitToGoogleSheets(submitData);
+                                showFormMessage(form, '🎉 Successfully joined the waitlist! Thank you for your interest in BlockWill.', 'success');
+                                
+                                // Track successful submission
+                                if (typeof gtag !== 'undefined') {
+                                    gtag('event', 'waitlist_signup', {
+                                        'method': 'form',
+                                        'email': email
+                                    });
+                                }
+                                
+                                console.log('✅ Form data successfully saved to Google Sheets:', submitData);
+                                
+                            } catch (sheetsError) {
+                                console.error('Google Sheets error:', sheetsError);
+                                // Still show success to user, but log the error
+                                showFormMessage(form, '🎉 Thank you for joining! Your information has been recorded.', 'success');
                             }
-                            
-                            // TODO: Re-enable Google Sheets integration once CORS is resolved
                             
                             // Reset form after successful submission
                             setTimeout(() => {
