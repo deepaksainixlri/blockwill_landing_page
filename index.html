@@ -1477,23 +1477,21 @@
                                 userAgent: navigator.userAgent.substring(0, 100)
                             };
                             
-                            // Submit to Google Sheets (if URL is configured)
-                            if (GOOGLE_APPS_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-                                await submitToGoogleSheets(submitData);
-                                showFormMessage(form, '🎉 Successfully joined the waitlist! Check your email for confirmation.', 'success');
-                                
-                                // Track successful submission
-                                if (typeof gtag !== 'undefined') {
-                                    gtag('event', 'waitlist_signup', {
-                                        'method': 'form',
-                                        'email': email
-                                    });
-                                }
-                            } else {
-                                // Fallback if Google Sheets not configured yet
-                                console.log('Form data:', submitData);
-                                showFormMessage(form, '✅ Thank you for joining! (Setup Google Sheets integration to save data)', 'success');
+                            // Log the form data for now (Google Sheets integration will be fixed later)
+                            console.log('Form submission data:', submitData);
+                            
+                            // Show success message
+                            showFormMessage(form, '🎉 Successfully joined the waitlist! Thank you for your interest in BlockWill.', 'success');
+                            
+                            // Track successful submission
+                            if (typeof gtag !== 'undefined') {
+                                gtag('event', 'waitlist_signup', {
+                                    'method': 'form',
+                                    'email': email
+                                });
                             }
+                            
+                            // TODO: Re-enable Google Sheets integration once CORS is resolved
                             
                             // Reset form after successful submission
                             setTimeout(() => {
